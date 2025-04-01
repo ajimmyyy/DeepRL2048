@@ -1,12 +1,14 @@
+import argparse
 import pygame
 import numpy as np
 from agent.dqn_agent import DQNAgent
 from game_env.game_ui import Game2048UI
 
 class TestAgent:
-    def __init__(self):
+    def __init__(self, model_path='dqn_model.pth'):
+        """初始化測試代理"""
         self.agent = DQNAgent(state_size=16, action_size=4)
-        self.agent.load_model('dqn_model.pth')
+        self.agent.load_model(model_path)
         self.ui = Game2048UI()
 
     def get_game_state(self):
@@ -35,5 +37,9 @@ class TestAgent:
         print(f"Game Over! Final Score: {self.ui.env.score}")
 
 if __name__ == "__main__":
-    test_agent = TestAgent()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", type=str, required=True, help="Path to the trained model checkpoint")
+    args = parser.parse_args()
+    
+    test_agent = TestAgent(args.model)
     test_agent.play_game()

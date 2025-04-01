@@ -1,15 +1,16 @@
+import torch
 import numpy as np
 import random
 from collections import deque
 
 class ReplayBuffer:
-    def __init__(self, buffer_size):
+    def __init__(self, buffer_size, device=None):
         """初始化 Replay Buffer
         :param buffer_size: 緩衝區的最大大小
         """
         self.buffer_size = buffer_size
         self.buffer = deque(maxlen=buffer_size)
-        self.position = 0  # 當前緩衝區的大小
+        self.device = device if device else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def add(self, experience):
         """將經驗加入緩衝區
@@ -22,9 +23,16 @@ class ReplayBuffer:
         :param batch_size: 抽樣的大小
         :return: (states, actions, rewards, next_states, dones)
         """
-        batch = random.sample(self.buffer, batch_size)  # 隨機抽取 batch_size 個經驗
+        batch = random.sample(self.buffer, batch_size)
         states, actions, rewards, next_states, dones = zip(*batch)
-        return np.array(states), np.array(actions), np.array(rewards), np.array(next_states), np.array(dones)
+        
+        states = torch.tensor(np.array(states), dtype=torch.float32, device=self.device)
+        actions = torch.tensor(np.array(actions), dtype=torch.long, device=self.device)
+        rewards = torch.tensor(np.array(rewards), dtype=torch.float32, device=self.device)
+        next_states = torch.tensor(np.array(next_states), dtype=torch.float32, device=self.device)
+        dones = torch.tensor(np.array(dones), dtype=torch.float32, device=self.device)
+
+        return states, actions, rewards, next_states, dones
 
     def size(self):
         """返回當前緩衝區的大小"""

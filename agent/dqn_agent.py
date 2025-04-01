@@ -1,20 +1,30 @@
+import torch._dynamo
+torch._dynamo.config.suppress_errors = True
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import numpy as np
 from models.q_network import QNetwork
 from .replay_buffer import ReplayBuffer
-import numpy as np
+from utils.config import Config
+
+#設定
+config = Config()
 
 class DQNAgent:
     def __init__(self, state_size, action_size):
-        self.model = QNetwork(state_size, action_size)
-        self.target_model = QNetwork(state_size, action_size)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"使用裝置: {self.device}")
+
+        self.model = torch.compile(QNetwork(state_size, action_size).to(self.device))
+        self.target_model = torch.compile(QNetwork(state_size, action_size).to(self.device))
         self.target_model.load_state_dict(self.model.state_dict())
-        self.replay_buffer = ReplayBuffer(10000)
-        self.epsilon = 1.0
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.995
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+
+        self.replay_buffer = ReplayBuffer(config.REPLAY_BUFFER_SIZE, device=self.device)
+        self.epsilon = config.EPSILON_START
+        self.optimizer = optim.Adam(self.model.parameters(), lr=config.LEARNING_RATE)
+        self.training_step = 0
 
     def save_model(self, filepath):
         """儲存模型的狀態"""
@@ -27,7 +37,7 @@ class DQNAgent:
 
     def load_model(self, filepath):
         """載入模型的狀態"""
-        checkpoint = torch.load(filepath)
+        checkpoint = torch.load(filepath, map_location=self.device)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.epsilon = checkpoint['epsilon']
@@ -36,42 +46,52 @@ class DQNAgent:
     def act(self, state):
         """根據當前狀態選擇動作 (ε-greedy)"""
         if np.random.rand() < self.epsilon:
-            return np.random.choice(4)
-        state_tensor = torch.FloatTensor(state.flatten()).unsqueeze(0)
-        q_values = self.model(state_tensor)
+            return np.random.choice(config.ACTION_SIZE)
+            
+        state_tensor = torch.tensor(state, dtype=torch.float32, device=self.device).unsqueeze(0)
+        with torch.no_grad():
+            q_values = self.model(state_tensor)
         return torch.argmax(q_values).item()
 
     def train(self):
         """從 Replay Buffer 取樣進行 Q-learning 訓練"""
-        if self.replay_buffer.size() < 32:
-            return  # 不足批次大小，跳過訓練
+        if self.replay_buffer.size() < config.BATCH_SIZE:
+            return
         
-        states, actions, rewards, next_states, dones = self.replay_buffer.sample(32)
-        states = torch.FloatTensor(np.array(states))
-        next_states = torch.FloatTensor(np.array(next_states))
-        actions = torch.LongTensor(actions)
-        rewards = torch.FloatTensor(rewards)
-        dones = torch.FloatTensor(dones)
+        states, actions, rewards, next_states, dones = self.replay_buffer.sample(config.BATCH_SIZE)
+
+        states = states.to(self.device, non_blocking=True)
+        next_states = next_states.to(self.device, non_blocking=True)
+        actions = actions.to(self.device, non_blocking=True)
+        rewards = rewards.to(self.device, non_blocking=True)
+        dones = dones.to(self.device, non_blocking=True)
 
         q_values = self.model(states)
         q_values_next = self.target_model(next_states)
-
+        
         # 計算目標 Q 值
-        target_q_values = q_values.clone()
-        for i in range(32):
-            target_q_values[i, actions[i]] = rewards[i] + (1 - dones[i]) * 0.99 * torch.max(q_values_next[i])
+        q_values_target = q_values.clone()
+        batch_indices = torch.arange(config.BATCH_SIZE, device=self.device)
+        q_values_target[batch_indices, actions] = rewards + (1 - dones) * config.GAMMA * torch.max(q_values_next, dim=1)[0]
+        
+        q_values_selected = q_values[batch_indices, actions] 
+        q_values_target_selected = q_values_target[batch_indices, actions]
 
         # 計算損失並反向傳播
-        loss = nn.MSELoss()(q_values, target_q_values.detach())
+        loss = nn.MSELoss()(q_values_selected, q_values_target_selected)
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
         # 更新 epsilon
-        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+        self.epsilon = max(config.EPSILON_MIN, self.epsilon * config.EPSILON_DECAY)
 
-        # 更新目標網路
-        self.target_model.load_state_dict(self.model.state_dict())
+        # 每 N 次更新目標網路
+        self.training_step += 1
+        if self.training_step % config.TARGET_UPDATE_FREQUENCY == 0:
+            self.target_model.load_state_dict(self.model.state_dict())
+
+        return loss.item()
 
 if __name__ == "__main__":
     agent = DQNAgent(state_size=16, action_size=4)
