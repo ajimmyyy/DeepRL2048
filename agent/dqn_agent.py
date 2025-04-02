@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch_directml
 import numpy as np
 from models.q_network import QNetwork
 from .replay_buffer import ReplayBuffer
@@ -12,7 +13,7 @@ config = Config()
 class DQNAgent:
     def __init__(self, state_size, action_size):
         torch.backends.cudnn.benchmark = True
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch_directml.device()
         print(f"使用裝置: {self.device}")
 
         self.model = QNetwork(state_size, action_size).to(self.device)

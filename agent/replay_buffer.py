@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import random
+import torch_directml
 from collections import deque
 
 class ReplayBuffer:
@@ -10,7 +11,7 @@ class ReplayBuffer:
         """
         self.buffer_size = buffer_size
         self.buffer = deque(maxlen=buffer_size)
-        self.device = device if device else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device if device else torch_directml.device()
 
     def add(self, experience):
         """將經驗加入緩衝區
