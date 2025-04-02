@@ -9,15 +9,15 @@ class Config:
     EPSILON_START = 1.0  # 初始 epsilon
     EPSILON_MIN = 0.01  # 最小 epsilon
     EPSILON_DECAY = 0.995  # epsilon 衰減率
-    BATCH_SIZE = 64  # 批次大小
+    BATCH_SIZE = 128  # 批次大小
     REPLAY_BUFFER_SIZE = 10000  # 回放緩衝區大小
     TARGET_UPDATE_FREQUENCY = 100  # 更新目標網路的頻率
 
     # 訓練過程相關
-    ENV_NUM = 16  # 環境數量
-    MAX_EPISODES = 1000  # 最大訓練回合數
-    MAX_STEPS = 300  # 每回合的最大步數
+    ENV_NUM = 32  # 環境數量
+    MAX_EPISODES = 10001  # 最大訓練回合數
+    MAX_STEPS = 500  # 每回合的最大步數
 
     # 儲存與載入模型
     MODEL_SAVE_PATH = 'checkpoint.pth'  # 儲存模型的路徑
-    MODEL_SAVE_INTERVAL = 200  # 儲存模型的間隔
+    MODEL_SAVE_INTERVAL = 100  # 儲存模型的間隔

@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from game_env.parallel_env import ParallelEnv
 from agent.dqn_agent import DQNAgent
@@ -14,6 +15,7 @@ def train():
     agent = DQNAgent(state_size=config.STATE_SIZE, action_size=config.ACTION_SIZE)
 
     for episode in range(config.MAX_EPISODES):
+        start_time = time.time()
         states = envs.reset()
         total_rewards = np.zeros(config.ENV_NUM)
 
@@ -31,8 +33,10 @@ def train():
             if np.all(dones):
                 break
 
+        elapsed_time = time.time() - start_time
+
         # 記錄訓練結果
-        logger.log(f"Episode {episode}, Avg Reward: {total_rewards.mean()}, Loss: {loss}")
+        logger.log(f"Episode {episode}, Avg Reward: {total_rewards.mean()}, Loss: {loss}, Time: {elapsed_time:.2f} sec")
 
         # 儲存模型
         if episode % config.MODEL_SAVE_INTERVAL == 0:
