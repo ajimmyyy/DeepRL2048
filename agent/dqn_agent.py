@@ -41,15 +41,16 @@ class DQNAgent:
         self.epsilon = checkpoint['epsilon']
         print(f"模型已載入自 {filepath}")
 
-    def act(self, state):
+    def act(self, states):
         """根據當前狀態選擇動作 (ε-greedy)"""
         if np.random.rand() < self.epsilon:
-            return np.random.choice(config.ACTION_SIZE)
-            
-        state_tensor = torch.tensor(state, dtype=torch.float32, device=self.device).unsqueeze(0)
+            return np.random.choice(config.ACTION_SIZE, size=len(states))
+
+        states_tensor = torch.tensor(states, dtype=torch.float32, device=self.device)
         with torch.no_grad():
-            q_values = self.model(state_tensor)
-        return torch.argmax(q_values).item()
+            q_values = self.model(states_tensor)
+
+        return torch.argmax(q_values, dim=1).cpu().numpy()
 
     def train(self):
         """從 Replay Buffer 取樣進行 Q-learning 訓練"""

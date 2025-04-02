@@ -2,9 +2,9 @@ import numpy as np
 import random
 
 class Game2048Simulator:
-    MERGE_BONUS = 8 # 合併獎勵
+    MERGE_BONUS = 0 # 合併獎勵
     INVALID_MOVE_PENALTY = -4 # 無效移動懲罰
-    NEW_TILE_VALUE_PROB = 0.9 # 新方塊出現的機率
+    NEW_TILE_VALUE_PROB = 1 # 新方塊出現的機率
     NEW_TILE_VALUES = [2, 4]
     
     def __init__(self):

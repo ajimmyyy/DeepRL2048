@@ -4,7 +4,7 @@ class Config:
     ACTION_SIZE = 4  # 可能的動作數量 (上、下、左、右)
 
     # 強化學習相關
-    LEARNING_RATE = 0.001  # 學習率
+    LEARNING_RATE = 0.0005  # 學習率
     GAMMA = 0.99  # 折扣因子
     EPSILON_START = 1.0  # 初始 epsilon
     EPSILON_MIN = 0.01  # 最小 epsilon
@@ -15,7 +15,7 @@ class Config:
 
     # 訓練過程相關
     ENV_NUM = 64  # 環境數量
-    MAX_EPISODES = 10001  # 最大訓練回合數
+    MAX_EPISODES = 1001  # 最大訓練回合數
     MAX_STEPS = 500  # 每回合的最大步數
 
     # 儲存與載入模型
