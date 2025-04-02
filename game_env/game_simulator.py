@@ -2,7 +2,9 @@ import numpy as np
 import random
 
 class Game2048Simulator:
-    NEW_TILE_VALUE_PROB = 0.9
+    MERGE_BONUS = 8 # 合併獎勵
+    INVALID_MOVE_PENALTY = -4 # 無效移動懲罰
+    NEW_TILE_VALUE_PROB = 1 # 新方塊出現的機率
     NEW_TILE_VALUES = [2, 4]
     
     def __init__(self):
@@ -63,6 +65,8 @@ class Game2048Simulator:
         if changed:
             self._add_new_tile()
 
+        return changed
+
     def is_game_over(self):
         """檢查遊戲是否結束"""
         if np.any(self.board == 0):  # 還有空格
@@ -77,8 +81,15 @@ class Game2048Simulator:
     def step(self, action):
         """執行一個動作 (0:上, 1:下, 2:左, 3:右)，回傳 (新狀態, 獎勵, 是否結束)"""
         prev_score = self.score
-        self._move(action)
-        reward = self.score - prev_score
+        prev_empty_cells = np.sum(self.board == 0)
+
+        changed = self._move(action)
+
+        new_empty_cells = np.sum(self.board == 0)
+        merge_bonus = (prev_empty_cells - new_empty_cells) * self.MERGE_BONUS
+        
+        reward = self.score - prev_score + merge_bonus if changed else self.INVALID_MOVE_PENALTY
+
         self.done = self.is_game_over()
         return self.board.copy(), reward, self.done
 
@@ -86,9 +97,3 @@ class Game2048Simulator:
         """重置遊戲"""
         self.__init__()
         return self.board.copy()
-
-if __name__ == "__main__":
-    env = Game2048Simulator()
-    print(env.board)
-    state, reward, done = env.step(2)  # 嘗試向左移動
-    print(state, reward, done)

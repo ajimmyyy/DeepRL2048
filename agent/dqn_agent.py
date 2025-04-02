@@ -1,6 +1,3 @@
-import torch._dynamo
-torch._dynamo.config.suppress_errors = True
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -14,11 +11,12 @@ config = Config()
 
 class DQNAgent:
     def __init__(self, state_size, action_size):
+        torch.backends.cudnn.benchmark = True
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"使用裝置: {self.device}")
 
-        self.model = torch.compile(QNetwork(state_size, action_size).to(self.device))
-        self.target_model = torch.compile(QNetwork(state_size, action_size).to(self.device))
+        self.model = QNetwork(state_size, action_size).to(self.device)
+        self.target_model = QNetwork(state_size, action_size).to(self.device)
         self.target_model.load_state_dict(self.model.state_dict())
 
         self.replay_buffer = ReplayBuffer(config.REPLAY_BUFFER_SIZE, device=self.device)
@@ -60,25 +58,18 @@ class DQNAgent:
         
         states, actions, rewards, next_states, dones = self.replay_buffer.sample(config.BATCH_SIZE)
 
-        states = states.to(self.device, non_blocking=True)
-        next_states = next_states.to(self.device, non_blocking=True)
-        actions = actions.to(self.device, non_blocking=True)
-        rewards = rewards.to(self.device, non_blocking=True)
-        dones = dones.to(self.device, non_blocking=True)
-
         q_values = self.model(states)
-        q_values_next = self.target_model(next_states)
-        
-        # 計算目標 Q 值
-        q_values_target = q_values.clone()
+        q_values_next = self.target_model(next_states).detach()
+
+        # 計算 Q 值的目標
         batch_indices = torch.arange(config.BATCH_SIZE, device=self.device)
-        q_values_target[batch_indices, actions] = rewards + (1 - dones) * config.GAMMA * torch.max(q_values_next, dim=1)[0]
-        
-        q_values_selected = q_values[batch_indices, actions] 
-        q_values_target_selected = q_values_target[batch_indices, actions]
+        max_q_values_next = torch.max(q_values_next, dim=1)[0]
+        q_values_target = rewards + (1 - dones) * config.GAMMA * max_q_values_next
+
+        q_values_selected = q_values[batch_indices, actions]
 
         # 計算損失並反向傳播
-        loss = nn.MSELoss()(q_values_selected, q_values_target_selected)
+        loss = nn.MSELoss()(q_values_selected, q_values_target)
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -92,9 +83,3 @@ class DQNAgent:
             self.target_model.load_state_dict(self.model.state_dict())
 
         return loss.item()
-
-if __name__ == "__main__":
-    agent = DQNAgent(state_size=16, action_size=4)
-    state = np.zeros(16)
-    action = agent.act(state)
-    print(f"Selected action: {action}")

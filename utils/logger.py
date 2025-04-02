@@ -24,4 +24,3 @@ class Logger:
     def log(self, message):
         """記錄訓練過程中的信息"""
         self.logger.info(message)
-        print(message)

@@ -11,7 +11,7 @@ config = Config()
 class TestAgent:
     def __init__(self, model_path='checkpoint.pth'):
         """初始化測試代理"""
-        self.agent = DQNAgent(state_size=16, action_size=4)
+        self.agent = DQNAgent(state_size=config.STATE_SIZE, action_size=config.ACTION_SIZE)
         self.agent.load_model(model_path)
         self.agent.epsilon = -1
         self.ui = Game2048UI()
@@ -29,7 +29,7 @@ class TestAgent:
     def get_game_state(self):
         """獲取遊戲狀態並將其格式化為模型所需的輸入"""
         game_state = self.ui.env.board
-        return np.reshape(game_state, (1, 4, 4, 1))
+        return np.reshape(game_state, (1, 16))
 
     def play_game(self):
         """讓代理在UI模式下玩遊戲"""
