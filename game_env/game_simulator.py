@@ -4,7 +4,7 @@ import random
 class Game2048Simulator:
     MERGE_BONUS = 8 # 合併獎勵
     INVALID_MOVE_PENALTY = -4 # 無效移動懲罰
-    NEW_TILE_VALUE_PROB = 1 # 新方塊出現的機率
+    NEW_TILE_VALUE_PROB = 0.9 # 新方塊出現的機率
     NEW_TILE_VALUES = [2, 4]
     
     def __init__(self):
@@ -39,10 +39,11 @@ class Game2048Simulator:
     def _move(self, direction):
         """執行 2048 移動 (0:上, 1:下, 2:左, 3:右)"""
         rotated = self.board
+
         if direction == 0:  # 上
-            rotated = rotated.T
+            rotated = rotated.T[:, ::-1]
         elif direction == 1:  # 下
-            rotated = rotated.T[::-1]
+            rotated = rotated.T
         elif direction == 2:  # 左
             rotated = rotated
         elif direction == 3:  # 右
@@ -52,9 +53,9 @@ class Game2048Simulator:
 
         # 還原旋轉方向
         if direction == 0:  # 上
-            moved_board = moved_board.T
+            moved_board = moved_board[:, ::-1].T
         elif direction == 1:  # 下
-            moved_board = moved_board[::-1].T
+            moved_board = moved_board.T
         elif direction == 2:  # 左
             moved_board = moved_board
         elif direction == 3:  # 右
@@ -62,6 +63,7 @@ class Game2048Simulator:
 
         changed = not np.array_equal(self.board, moved_board)
         self.board = moved_board
+
         if changed:
             self._add_new_tile()
 
