@@ -20,7 +20,7 @@ def train():
         total_rewards = np.zeros(config.ENV_NUM)
 
         for step in range(config.MAX_STEPS):
-            actions = [agent.act(state.flatten()) for state in states]
+            actions = agent.act(np.array([state.flatten() for state in states]))
             new_states, rewards, dones = envs.step(actions)
 
             for i in range(config.ENV_NUM):
