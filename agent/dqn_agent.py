@@ -59,15 +59,16 @@ class DQNAgent:
         
         states, actions, rewards, next_states, dones = self.replay_buffer.sample(config.BATCH_SIZE)
 
+        # Q值計算
         q_values = self.model(states)
+        q_values_selected = q_values[torch.arange(config.BATCH_SIZE, device=self.device), actions]
+
+        actions_next = torch.argmax(self.model(next_states), dim=1)
+
         q_values_next = self.target_model(next_states).detach()
+        q_values_next_selected = q_values_next[torch.arange(config.BATCH_SIZE, device=self.device), actions_next]
 
-        # 計算 Q 值的目標
-        batch_indices = torch.arange(config.BATCH_SIZE, device=self.device)
-        max_q_values_next = torch.max(q_values_next, dim=1)[0]
-        q_values_target = rewards + (1 - dones) * config.GAMMA * max_q_values_next
-
-        q_values_selected = q_values[batch_indices, actions]
+        q_values_target = rewards + (1 - dones) * config.GAMMA * q_values_next_selected
 
         # 計算損失並反向傳播
         loss = nn.MSELoss()(q_values_selected, q_values_target)

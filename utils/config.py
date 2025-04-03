@@ -14,8 +14,8 @@ class Config:
     TARGET_UPDATE_FREQUENCY = 100  # 更新目標網路的頻率
 
     # 訓練過程相關
-    ENV_NUM = 64  # 環境數量
-    MAX_EPISODES = 1001  # 最大訓練回合數
+    ENV_NUM = 32  # 環境數量
+    MAX_EPISODES = 101  # 最大訓練回合數
     MAX_STEPS = 500  # 每回合的最大步數
 
     # 儲存與載入模型

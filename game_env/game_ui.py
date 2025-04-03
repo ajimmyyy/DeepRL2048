@@ -52,15 +52,14 @@ class Game2048UI:
 
                 color = self.get_tile_color(value)
 
-                screen_y = 3 - y
-                rect = pygame.Rect(x * 100 + 10, screen_y * 100 + 10, 90, 90)
+                rect = pygame.Rect(x * 100 + 10, y * 100 + 10, 90, 90)
 
                 pygame.draw.rect(self.screen, color, rect)
 
                 if value:  # 如果該格子有數字（即非零）
                     text_color = (0, 0, 0) if value <= 4 else (255, 255, 255)
                     text = self.font.render(str(value), True, text_color)
-                    self.screen.blit(text, (x * 100 + 40, screen_y * 100 + 40))
+                    self.screen.blit(text, (x * 100 + 40, y * 100 + 40))
 
         pygame.display.flip()
 
