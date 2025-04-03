@@ -15,7 +15,7 @@ class Config:
 
     # 訓練過程相關
     ENV_NUM = 32  # 環境數量
-    MAX_EPISODES = 101  # 最大訓練回合數
+    MAX_EPISODES = 3001  # 最大訓練回合數
     MAX_STEPS = 500  # 每回合的最大步數
 
     # 儲存與載入模型
