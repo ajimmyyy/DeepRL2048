@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch_directml
 
 class QNetwork(nn.Module):
     def __init__(self, board_size, output_dim):
@@ -29,7 +30,7 @@ class QNetwork(nn.Module):
             nn.Linear(128, output_dim)  
         )
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch_directml.device()
         self.to(self.device)
 
         self._init_weights()
