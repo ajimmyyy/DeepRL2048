@@ -9,33 +9,29 @@ class QNetwork(nn.Module):
         self.board_size = board_size
 
         self.conv = nn.Sequential(
-            nn.Conv2d(1, 128, kernel_size=2, stride=1),
+            nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
-            nn.BatchNorm2d(128),
-            nn.Conv2d(128, 128, kernel_size=2, stride=1),
+            nn.BatchNorm2d(32),
+            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
-            nn.BatchNorm2d(128),
-            nn.Conv2d(128, 256, kernel_size=2, stride=1),
+            nn.BatchNorm2d(64),
+            nn.Conv2d(64, 128, kernel_size=4, stride=1, padding=0),
             nn.ReLU(),
         )
 
         self.global_avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
         self.fc = nn.Sequential(
-            nn.Linear(256, 256),  
+            nn.Linear(128, 128),
             nn.ReLU(),
-            nn.Dropout(0.2),
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Linear(128, output_dim)  
+            nn.Dropout(0.1),
+            nn.Linear(128, output_dim)
         )
-
-        self.device = torch_directml.device()
-        self.to(self.device)
 
         self._init_weights()
 
     def forward(self, x):
+        x = torch.log2(x + 1)
         x = x.view(-1, 1, self.board_size, self.board_size)
         x = self.conv(x)
         x = self.global_avg_pool(x)
@@ -53,10 +49,11 @@ class QNetwork(nn.Module):
 if __name__ == "__main__":
     board_size = 4
     output_dim = 4
+    device = torch.device("cpu")
     
-    model = QNetwork(board_size, output_dim)
+    model = QNetwork(board_size, output_dim).to(device)
     
-    test_input = torch.randn(1, board_size, board_size)
+    test_input = torch.randn(1, board_size, board_size).to(device)
     output = model(test_input)
 
     print("模型輸出形狀:", output.shape)

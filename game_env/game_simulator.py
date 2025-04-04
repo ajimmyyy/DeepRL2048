@@ -3,7 +3,7 @@ import random
 
 class Game2048Simulator:
     MERGE_BONUS = 0 # 合併獎勵
-    INVALID_MOVE_PENALTY = -4 # 無效移動懲罰
+    INVALID_MOVE_PENALTY = -2 # 無效移動懲罰
     NEW_TILE_VALUE_PROB = 1 # 新方塊出現的機率
     
     def __init__(self):

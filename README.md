@@ -1,4 +1,5 @@
 # DeepRL2048
+
 Deep Reinforcement Learning for 2048 Game
 
 📌 專案簡介
@@ -33,16 +34,21 @@ pip install -r requirements.txt
 python train_dqn.py
 ```
 
+運行 reward_dashboard.py 查看訓練過程
+
+```bach
+streamlit run ui/reward_dashboard.py
+```
+
 2️⃣ 測試訓練結果
+
 ```bach
 python test_agent.py --model checkpoint.pth
 ```
 
 📝 調整
 
-utils/config.py 下能調整模型訓練參數
+utils/config.py 下能調整模型訓練參數  
 models 下能實現不同模型細節
 
 📝 TODO
-
-- 
