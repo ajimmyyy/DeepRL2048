@@ -1,4 +1,3 @@
-import math
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -74,10 +73,10 @@ class DQNAgent:
         q_values = self.model(states)
         q_values_selected = q_values[torch.arange(config.BATCH_SIZE, device=self.device), actions]
 
-        actions_next = torch.argmax(self.model(next_states), dim=1)
-
-        q_values_next = self.target_model(next_states).detach()
-        q_values_next_selected = q_values_next[torch.arange(config.BATCH_SIZE, device=self.device), actions_next]
+        with torch.no_grad():
+            q_values_next = self.target_model(next_states)
+            actions_next = self.model(next_states).argmax(dim=1)
+            q_values_next_selected = q_values_next.gather(1, actions_next.unsqueeze(1)).squeeze(1)
 
         q_values_target = rewards + (1 - dones) * config.GAMMA * q_values_next_selected
 
