@@ -2,6 +2,7 @@ import time
 import numpy as np
 from game_env.parallel_env import ParallelEnv
 from agent.dqn_agent import DQNAgent
+from utils.reward_writer import RewardWriter
 from utils.config import Config
 from utils.logger import Logger
 
@@ -12,7 +13,8 @@ logger = Logger()
 def train():
     # 初始化環境和代理
     envs = ParallelEnv(config.ENV_NUM)
-    agent = DQNAgent(state_size=config.STATE_SIZE, action_size=config.ACTION_SIZE)
+    agent = DQNAgent(state_size=config.STATE_SIZE, action_size=config.ACTION_SIZE, device_type=config.DEVICE_TYPE)
+    reward_writer = RewardWriter()
 
     for episode in range(config.MAX_EPISODES):
         start_time = time.time()
@@ -26,7 +28,7 @@ def train():
             for i in range(config.ENV_NUM):
                 agent.replay_buffer.add((states[i].flatten(), actions[i], rewards[i], new_states[i].flatten(), dones[i]))
 
-            loss = agent.train()
+            agent.train()
             total_rewards += rewards
             states = new_states
 
@@ -36,7 +38,8 @@ def train():
         elapsed_time = time.time() - start_time
 
         # 記錄訓練結果
-        logger.log(f"Episode {episode}, Avg Reward: {total_rewards.mean()}, Loss: {loss}, Time: {elapsed_time:.2f} sec")
+        logger.log(f"Episode {episode}, Avg Reward: {total_rewards.mean()}, Time: {elapsed_time:.2f} sec")
+        reward_writer.append(episode, total_rewards.sum(), total_rewards.mean())
 
         # 儲存模型
         if episode % config.MODEL_SAVE_INTERVAL == 0:
@@ -45,6 +48,9 @@ def train():
 
         if episode % 100 == 0:
             logger.log(f"Episode {episode}: Total Reward: {total_rewards.sum()}")
+
+    envs.close()
+    reward_writer.close()
 
 if __name__ == "__main__":
     train()

@@ -34,16 +34,17 @@ class TestAgent:
     def play_game(self):
         """讓代理在UI模式下玩遊戲"""
         self.ui.draw_board()
+        totol_step = 0
+        invalid_action_count = 0
 
         while not self.ui.env.done:
             game_state = self.get_game_state()
-            action = self.agent.act(game_state)
+            action = self.agent.act(game_state).item()
 
             if not self.is_valid_action(action):
+                invalid_action_count += 1
                 print(f"Invalid action: {action}. Choosing another action.")
-                action = np.random.choice(config.ACTION_SIZE)
-
-            print(f"Action: {action}")
+                action = np.random.choice([a for a in range(config.ACTION_SIZE) if self.is_valid_action(a)])
 
             # 在遊戲環境中執行動作
             self.ui.env.step(action)
@@ -54,8 +55,12 @@ class TestAgent:
             # 暫停一段時間，以便遊戲有時間更新
             pygame.time.wait(200)
 
+            totol_step += 1
+
         # 遊戲結束時打印結果
         print(f"Game Over! Final Score: {self.ui.env.score}")
+        print(f"Total Steps: {totol_step}")
+        print(f"Invalid Actions: {invalid_action_count}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

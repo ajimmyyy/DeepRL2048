@@ -3,9 +3,12 @@ name = "deeprl2048"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
+    "altair>=5.5.0",
     "numpy>=2.2.4",
     "pandas>=2.2.3",
     "pygame>=2.6.1",
+    "streamlit>=1.44.1",
+    "torch-directml>=0.2.5.dev240914",
 ]
