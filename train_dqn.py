@@ -39,11 +39,11 @@ def train():
 
         # 記錄訓練結果
         logger.log(f"Episode {episode}, Avg Reward: {total_rewards.mean()}, Time: {elapsed_time:.2f} sec")
-        reward_writer.append(episode, total_rewards.sum(), total_rewards.mean())
+        reward_writer.append(episode, total_rewards.sum(), total_rewards.mean(), elapsed_time)
 
         # 儲存模型
         if episode % config.MODEL_SAVE_INTERVAL == 0:
-            agent.save_model(config.MODEL_SAVE_PATH)
+            agent.save_model(config.MODEL_SAVE_PATH, config.MODEL_NAME)
             logger.log(f"Model saved at episode {episode}")
 
         if episode % 100 == 0:

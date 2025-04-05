@@ -2,8 +2,8 @@ import numpy as np
 import random
 
 class Game2048Simulator:
-    MERGE_BONUS = 0 # 合併獎勵
-    INVALID_MOVE_PENALTY = -2 # 無效移動懲罰
+    EMPTY_TILE_REWARD = 0.5 # 空白格子獎勵
+    INVALID_MOVE_PENALTY = -1 # 無效移動懲罰
     NEW_TILE_VALUE_PROB = 1 # 新方塊出現的機率
     
     def __init__(self):
@@ -81,7 +81,10 @@ class Game2048Simulator:
         """執行一個動作 (0:上, 1:下, 2:左, 3:右)，回傳 (新狀態, 獎勵, 是否結束)"""
         prev_score = self.score
         changed = self._move(action)
-        reward = (self.score - prev_score) if changed else self.INVALID_MOVE_PENALTY
+        if not changed:
+            reward = self.INVALID_MOVE_PENALTY
+        else:
+            reward = (np.log2(self.score - prev_score) if self.score > prev_score else 0) + (self.EMPTY_TILE_REWARD * np.sum(self.board == 0))
         self.done = self.is_game_over()
 
         return self.board.copy(), reward, self.done

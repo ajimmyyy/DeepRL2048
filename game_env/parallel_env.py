@@ -11,17 +11,20 @@ class Game2048Process(mp.Process):
 
     def run(self):
         """子進程運行，處理 step 和 reset"""
-        while True:
-            cmd, data = self.conn.recv()
-            if cmd == "step":
-                state, reward, done = self.env.step(data)
-                self.conn.send((state, reward, done))
-            elif cmd == "reset":
-                state = self.env.reset()
-                self.conn.send(state)
-            elif cmd == "close":
-                self.conn.close()
-                break
+        try:
+            while True:
+                cmd, data = self.conn.recv()
+                if cmd == "step":
+                    state, reward, done = self.env.step(data)
+                    self.conn.send((state, reward, done))
+                elif cmd == "reset":
+                    state = self.env.reset()
+                    self.conn.send(state)
+                elif cmd == "close":
+                    self.conn.close()
+                    break
+        except KeyboardInterrupt:
+            self.conn.close()
 
 class ParallelEnv:
     def __init__(self, num_envs):
@@ -56,4 +59,19 @@ class ParallelEnv:
             conn.send(("close", None))
 
         for process in self.processes:
-            process.join()
+            try:
+                process.join()
+            except KeyboardInterrupt:
+                print(f"Process {process.pid} interrupted while joining. Skipping...")
+
+    def shutdown(self):
+        """強制關閉所有環境，避免異常"""
+        try:
+            self.close()
+        except KeyboardInterrupt:
+            print("Forced shutdown initiated.")
+            for conn in self.parent_conns:
+                conn.close()
+            for process in self.processes:
+                process.terminate()
+            print("All processes terminated.")

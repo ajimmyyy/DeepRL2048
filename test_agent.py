@@ -12,7 +12,7 @@ class TestAgent:
     def __init__(self, model_path='checkpoint.pth'):
         """初始化測試代理"""
         self.agent = DQNAgent(state_size=config.STATE_SIZE, action_size=config.ACTION_SIZE)
-        self.agent.load_model(model_path)
+        self.agent.load_model('checkpoints', model_path)
         self.agent.epsilon = -1
         self.ui = Game2048UI()
 

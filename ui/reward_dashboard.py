@@ -27,6 +27,19 @@ while True:
         df["Smoothed Avg Reward"] = df["Avg Reward"].rolling(window=SMOOTHING_WINDOW, min_periods=1).mean()
 
         with placeholder.container():
+            # 計算時間資訊
+            if "timestamp" in data and len(data["timestamp"]) >= 2:
+                start_time = data["timestamp"][0]
+                end_time = data["timestamp"][-1]
+                elapsed_seconds = end_time - start_time
+                avg_time_per_episode = elapsed_seconds / (len(data["episode"]) - 1)
+
+                elapsed_str = time.strftime("%H:%M:%S", time.gmtime(elapsed_seconds))
+                avg_str = f"{avg_time_per_episode:.2f} 秒"
+            else:
+                elapsed_str = "無法計算"
+                avg_str = "無法計算"
+
             col1, col2 = st.columns(2)
 
             with col1:
@@ -49,6 +62,11 @@ while True:
 
                 combined_chart = alt.layer(avg_line, smoothed_line).properties(width=600, height=400)
                 st.altair_chart(combined_chart)
+
+            st.markdown("---")
+            st.subheader("⏱️ 執行時間統計")
+            st.markdown(f"- **總經過時間**：{elapsed_str}")
+            st.markdown(f"- **平均每集時間**：{avg_str}")
 
         time.sleep(2)
 

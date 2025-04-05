@@ -1,6 +1,6 @@
 import pygame
 import numpy as np
-from .game_simulator import Game2048Simulator
+from game_simulator import Game2048Simulator
 
 class Game2048UI:
     ACTIONS = {
