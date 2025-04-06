@@ -26,9 +26,9 @@ class Config:
     MAX_STEPS = 1000  # 每回合的最大步數
 
     # 儲存與載入模型
-    MODEL_SAVE_PATH = 'checkpoints'  # 儲存模型的路徑
-    MODEL_NAME = 'checkpoint.pth'  # 模型名稱
+    MODEL_SAVE_PATH = 'checkpoints/checkpoint.pth'  # 儲存模型的路徑
     MODEL_SAVE_INTERVAL = 100  # 儲存模型的間隔
+    REWARD_LOG_PATH = 'runs/train_logs'  # 獎勵日誌的路徑
 
     def get_summary(self):
         """列印配置參數"""

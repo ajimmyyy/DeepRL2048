@@ -44,7 +44,7 @@ class DQNAgent:
         else:
             return torch.device("cpu")
 
-    def save_model(self, filepath, model_name):
+    def save_model(self, filepath):
         """儲存模型的狀態"""
         config_summary = config.get_summary()
 
@@ -53,15 +53,17 @@ class DQNAgent:
             'optimizer_state_dict': self.optimizer.state_dict(),
             'epsilon': self.epsilon,
             'additional_info': config_summary,
-        }, os.path.join(filepath, model_name))
+        }, filepath)
 
-        print(f"模型 {model_name} 已儲存到 {os.path.join(filepath, model_name)}")
+        print(f"已儲存到 {filepath}")
 
-    def load_model(self, filepath, model_name):
+    def load_model(self, filepath):
         """載入模型的狀態"""
-        filepath = os.path.join(filepath, model_name)
-        checkpoint = torch.load(filepath, map_location=self.device)
+        checkpoint = torch.load(filepath, map_location="cpu")
         self.model.load_state_dict(checkpoint['model_state_dict'])
+        self.model.to(self.device)
+        self.target_model.load_state_dict(checkpoint['model_state_dict'])
+        self.target_model.to(self.device)
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.epsilon = checkpoint['epsilon']
         print(f"模型已載入自 {filepath}")
